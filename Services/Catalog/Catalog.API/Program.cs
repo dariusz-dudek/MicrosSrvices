@@ -4,9 +4,12 @@ using Catalog.Core.Repositories;
 using Catalog.Infrastructure;
 using Catalog.Infrastructure.Data;
 using Catalog.Infrastructure.Repositories;
+using HealthChecks.UI.Client;
 using MediatR;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
+using ZstdSharp.Unsafe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,16 +39,30 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Catalog.API v1"));
 }
 
 app.UseRouting();
 app.MapControllers();
-// app.UseStaticFiles();
+//app.UseStaticFiles();
 app.UseAuthorization();
+
+app.MapHealthChecks("/health", new HealthCheckOptions()
+{
+    Predicate = _ => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
 
 // app.UseEndpoints(endpoints =>
 // {
 //     endpoints.MapControllers();
+//     endpoints.MapHealthChecks("/health", new HealthCheckOptions()
+//     {
+//         Predicate = _ => true,
+//         ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+//     });
 // });
 
 app.Run();
